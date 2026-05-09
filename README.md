@@ -8,7 +8,7 @@ A Claude Code skill that takes a website built somewhere else — Webflow, Frame
 
 - **A Railway-deployed Vite + React + Express site** at your custom domain
 - **PostHog analytics** with a same-origin reverse proxy (recovers 10–25% of events that ad-blockers would otherwise drop), `loaded`-callback init pattern (no race), and build-time deploy + variant identifiers attached to every event to enable A/B/n testing of every page individually in addtion to global website versions
-- **Microsoft Clarity** heatmaps + session replay alongside PostHog (the unlimited free-fallback for replay capacity past PostHog's free-tier cap of 5k desktop / 2.5k mobile sessions per month)
+- **Microsoft Clarity** heatmaps + session replay alongside PostHog (the unlimited free-fallback for replay capacity past PostHog's free-tier cap of 5k desktop / 2.5k mobile sessions per month). Clarity offers richer UI/UX experience for visual analysis.
 - **Resend** transactional email behind a swappable transport abstraction (welcome emails, contact-form notifications, autoresponders) with DKIM/SPF wired
 - **A geo-aware cookie consent banner** that adapts to your privacy posture (strict / standard / light) with three-layer Clarity content masking
 - **Optional: payments + memberships** via Stripe (default), Whop (recommended for content/community/course businesses), or Skool / Lemonsqueezy / Paddle / Gumroad — with HMAC-verified webhooks forwarding subscription events server-side to PostHog
