@@ -7,23 +7,23 @@ A Claude Code skill that takes a website built somewhere else — Webflow, Frame
 ## What you get when this skill runs end-to-end
 
 - **A Railway-deployed Vite + React + Express site** at your custom domain
-- **Cloudflare MCP integration** for easily connecting the correct domain settings, etc. You can opt for using your own Domain regsitrar DNS service, but you'll need to do more manual work.
+- **Cloudflare MCP integration** for easily connecting the correct domain settings, etc. You can opt for using your own Domain registrar DNS service, but you'll need to do more manual work.
 - **PostHog analytics** with
   - **same-origin *internal* reverse proxy** - this recovers **10–25% of events** that ad-blockers would otherwise drop (!!! 🤯)
-  - `loaded`-callback init pattern (no race), and build-time deploy + both global- and page-variant identifiers attached to every event. This enables A/B/n testing of every page individually in addtion to global website versions.
+  - `loaded`-callback init pattern (no race), and build-time deploy + both global- and page-variant identifiers attached to every event. This enables A/B/n testing of every page individually in addition to global website versions.
   - **Granular Tracking** by every CTA text, Button, etc that you want to understand the performance of
   - **Prebuilt variant-tracking dashboards** for sequential CRO iteration with 6+ pre-built PostHog dashboards
   - **Easy creation of additional custom dashboards in PostHog:** detailed, unlimited dashboards for measuring every metric you might be interested in (and filtering out the metrics you're not)
-  - **this altogether gives you MORE power than the highest Mouseflow subscription tier**
+  - **this altogether gives you MORE power than the $100+ Mouseflow subscription tier... for free**
 - **Microsoft Clarity** heatmaps + session replay alongside PostHog (the unlimited free-fallback for replay capacity past PostHog's free-tier cap of 5k desktop / 2.5k mobile sessions per month). Clarity offers richer UI/UX experience for visual analysis.
-- **Resend** transactional email behind a swappable transport abstraction (welcome emails, contact-form notifications, autoresponders) with DKIM/SPF wired. ('Swappable' means you can easily plug-in your own perferred ESP... easy ESPeasy).
+- **Resend** transactional email behind a swappable transport abstraction (welcome emails, contact-form notifications, autoresponders) with DKIM/SPF wired. ('Swappable' means you can easily plug-in your own preferred ESP... easy ESPeasy).
 - **A geo-aware cookie consent banner** that adapts to your privacy posture (strict / standard / light) with three-layer Clarity content masking. Allows you to geo-fence to only show banners to GDPR locales, to GDPR+California, etc. You choose your risk-comfort level. This is highly contingent on your marketing niche.
 - **Optional: payments** via Stripe (default)
-- **Optional: memberships** Whop (our default recommendation for content/community/course businesses) with HMAC-verified webhooks forwarding subscription events server-side to PostHog. You can swap in Skool / Lemonsqueezy / Paddle / Gumroad, etc.
+- **Optional: memberships** via Whop (our default recommendation for content/community/course businesses) with HMAC-verified webhooks forwarding subscription events server-side to PostHog. You can swap in Skool / Lemonsqueezy / Paddle / Gumroad, etc.
 - **Optional: affiliate program tools and tracking** with
   - multi-layer attribution surviving cookie deletion, Safari ITP, AND ad-platform username changes.
-  - Automated short-URL creation for affiliates via Switchy.io API ($39 LTD via Appsumo with very easy set-up)
-  - The native integration here is with Whop's affiliate program, but the tools contained provide easy tracking and integration with any affiliate program that provides API or webhook access. 
+  - Automated short-URL creation for affiliates via Switchy.io API ($39 LTD via Appsumo with very easy set-up, as of this writing)
+  - The native integration here is with Whop's affiliate program, but the tools we've created work with any affiliate program that provides API or webhook access. 
 - **A pre-launch checklist** that catches the otherwise silent-failures before paid traffic hits the site
 
 The skill ships 13 stages (0 through 12), each with a "Last verified" date and re-research instructions for when vendor APIs evolve.
@@ -38,7 +38,7 @@ The skill ships 13 stages (0 through 12), each with a "Last verified" date and r
 - **GitHub CLI** (`gh`) ([install](https://cli.github.com/))
 - **GitHub MCP** - connect via "connectors" inside Claude Code
 - A **Railway** account (free tier works for getting started)
-- Optional accounts created during the skill run: PostHog, Microsoft Clarity, Backblaze, Resend, Cloudflare, Stripe / Whop / etc. The onboarding process will get this sqaured away for you. 
+- Optional accounts created during the skill run: PostHog, Microsoft Clarity, Backblaze, Resend, Cloudflare, Stripe / Whop / etc. The onboarding process will get this squared away for you. 
 
 The skill walks you through signing up at each vendor when it's time. You don't need them all upfront. You have the option of doing them all upfront in order to allow the Skill to run more autonomously. 
 
