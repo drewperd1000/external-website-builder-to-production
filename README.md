@@ -196,7 +196,6 @@ The skill writes minimal copy by default (privacy policy text, banner labels, em
 | `superpowers:test-driven-development` | When adding features after launch — write the test first, ship the feature second |
 | `superpowers:executing-plans` | When a feature is large enough to warrant a written plan you'll execute over multiple sessions |
 | `superpowers:requesting-code-review` | Before merging non-trivial PRs |
-| `cross-device-workflow` | If you're hopping between Claude Code Desktop, Web, and Mobile while iterating |
 | `marketing:performance-report` | Weekly / monthly / quarterly marketing performance summaries from your PostHog data (Stage 11 dashboards feed this) |
 | `marketing:campaign-plan` | Planning launch campaigns, lead-gen pushes, or announcement waves |
 
