@@ -175,6 +175,7 @@ Plus three cross-cutting reference files (kept under `_internal/` because they'r
 - **[`_internal/reference-railway-automation.md`](_internal/reference-railway-automation.md)** — Railway's MCP / CLI / GraphQL surfaces.
 - **[`_internal/reference-cloudflare-dns.md`](_internal/reference-cloudflare-dns.md)** — `cdn-cgi/trace` geo detection, proxy vs DNS-only decisions, Cloudflare Error 1000 explainer, SPF stacking, Redirect Rules.
 - **[`_internal/reference-object-storage.md`](_internal/reference-object-storage.md)** — Railway Buckets vs Backblaze B2 decision framework, the public-URL caching gotcha, and the rule for defaulting to Backblaze when the public-vs-private question is uncertain.
+- **[`_internal/reference-forms-and-persistence.md`](_internal/reference-forms-and-persistence.md)** — the four-layer model for every form (validate → DB capture → notify-email → ESP segment sync → CRM sync → PostHog event), default-DB-capture rule with CRM-coverage opt-out gate, and the research-first pattern for ESP/CRM integrations (live-fetch the vendor's API at integration time, not at skill-write time).
 
 ## Technical invariants Claude follows when writing code
 

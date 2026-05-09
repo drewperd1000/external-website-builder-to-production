@@ -40,14 +40,79 @@ A 5-minute analysis upfront prevents weeks of "why is X broken in prod?" mystery
 
 I scan the source code for known patterns. **The user doesn't need to run anything**. I use my Grep tool (which works on Windows, macOS, and Linux identically) to look for:
 
-#### Form submission endpoints
+#### Forms — full structural extraction (NOT just "this site has forms")
 
-Pattern hunt:
+Forms are the highest-value Stage 0 output for Stage 5. I do NOT just note "there's a newsletter form somewhere"; I extract the complete structure of every form so Stage 5 can generate matching API endpoints, DB columns, and ESP-segment mappings without re-asking the user.
+
+**For every form on the site, I extract** (via reading JSX/HTML/component source, NOT by asking the user):
+
+| Property | Source | Example |
+|---|---|---|
+| `name` | Heuristic from form context — heading nearby, button label, route URL, surrounding copy | `"newsletter_signup"`, `"contact"`, `"request_demo"`, `"event_rsvp"` |
+| `route` | The page path the form lives on | `"/"`, `"/contact"`, `"/request-demo"`, `"/events/oct-15"` |
+| `current_action` | `<form action="...">` value, or the URL inside the JSX submit handler's `fetch()` / `axios()` call, or the platform-specific data attr (`data-readdy-form="X"` etc.) | `"https://api.formspark.io/abc123"`, `"https://webflow.com/api/v1/form/..."`, `null` (if no current handler) |
+| `fields` | Every `<input>`, `<select>`, `<textarea>` inside the form — extracted as `{name, type, required, label, placeholder, validation_pattern, options}` | See example below |
+| `submit_button_label` | The CTA text on the submit button | `"Subscribe"`, `"Send Message"`, `"Get a Quote"` |
+| `success_state` | What happens after submit — toast text, redirect URL, modal content | `"Thanks for subscribing! Check your inbox."` |
+| `inferred_purpose` | Best-guess of what the form is FOR (drives the suggested ESP-segment / CRM-stage / notification routing in Stage 5) | `"lead_capture"`, `"customer_support"`, `"newsletter_optin"`, `"event_signup"`, `"sales_inquiry"`, `"feedback"` |
+
+**Pattern hunt for the form elements themselves**:
+- `<form>` tags — easy on plain HTML, slightly harder in JSX where forms may be inside dynamically-rendered components
+- React Hook Form / Formik / Vee-Validate / native React state forms — I trace the submit handler to find the actual submission target
 - Hardcoded `action="https://..."` URLs in HTML / JSX
 - `fetch(...)` or `axios(...)` calls to platform form APIs
 - Platform-specific data attributes: `data-readdy-form`, `data-formspark`, `data-formsubmit`, `data-netlify`, Webflow's `wf-form` / `w-form-` classes
+- Library-specific patterns: `useForm()` from react-hook-form (the `register` calls list every field), Formik's `<Field name="...">`, `<input {...props}>` in custom hooks
 
-Each finding goes into the punchlist as a 🟡 pre-cutover item: "form X currently posts to platform Y; replace with `/api/...` route in Stage 5."
+**Output: I write `forms-manifest.md` to repo root** alongside `migration-punchlist.md`. One section per form, structured so Stage 5 can mechanically generate the matching API endpoint, validation schema, DB columns, and ESP/CRM mapping confirmation prompts.
+
+Example entry:
+
+```markdown
+## Form: newsletter_signup
+
+- **Route**: /
+- **Current action**: data-readdy-form="newsletter" (Readdy default; no real handler)
+- **Submit button**: "Subscribe"
+- **Success state**: toast "Thanks! Check your inbox to confirm."
+- **Inferred purpose**: newsletter_optin
+
+### Fields
+- email (input type=email, required, placeholder="you@example.com")
+
+### Stage 5 will generate
+- POST /api/newsletter-signup endpoint
+- Validation: { email: required + RFC-5322 }
+- DB table: form_submissions (default; user can opt out)
+- ESP target: ask user at Stage 5 (default: Resend Audiences "All Subscribers")
+- PostHog events: newsletter_signup_started + _completed (auto-included in Stage 11 funnels)
+
+## Form: request_demo
+
+- **Route**: /demo
+- **Current action**: <form action="https://hsforms.com/abc123"> (HubSpot Forms)
+- **Submit button**: "Request a Demo"
+- **Success state**: redirect to /thanks
+- **Inferred purpose**: sales_inquiry
+
+### Fields
+- full_name (input type=text, required)
+- work_email (input type=email, required)
+- company (input type=text, required)
+- company_size (select, options=[1-10, 11-50, 51-200, 201-1000, 1000+])
+- use_case (textarea, required, max=2000)
+
+### Stage 5 will generate
+- POST /api/request-demo endpoint
+- Validation: { full_name, work_email, company, company_size, use_case } per types above
+- DB table: form_submissions (default)
+- ESP target: ask user at Stage 5 (HubSpot already detected — likely route to HubSpot CRM)
+- PostHog events: request_demo_started + _completed
+```
+
+**The principle**: Stage 0 discovery is authoritative. Stage 5 confirms with the user where things route (which ESP segment, which CRM stage) but does NOT re-ask what fields the form has — that question was already answered by reading the code. The user's time is preserved for the questions only they can answer.
+
+If a form's purpose is genuinely ambiguous from the code alone (e.g., a generic `<form>` with one `email` field could be a newsletter or a "forgot password"), I list both possibilities in the manifest entry and ask the user once at Stage 5 to resolve.
 
 #### Images and external assets
 

@@ -107,6 +107,7 @@ _internal/
   reference-railway-automation.md  ← Railway MCP / CLI / GraphQL deep dive
   reference-cloudflare-dns.md   ← Cloudflare DNS patterns + cdn-cgi/trace
   reference-object-storage.md   ← Railway Buckets vs Backblaze B2 decision tree
+  reference-forms-and-persistence.md  ← four-layer form model + ESP/CRM research-first pattern
 
 examples/
   README.md                     ← pointers to where each canonical code pattern lives

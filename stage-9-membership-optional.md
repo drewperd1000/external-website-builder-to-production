@@ -97,7 +97,7 @@ When the user pastes both secrets, I save them to project-local `.secrets/` file
 
 ### Step 3: I provision the database + write the `getDb()` helper
 
-Stages 9 and 10 reference `db.query(...)` and `getDb()`. Before either makes sense, I provision a real database and write the abstraction. **This step is the same for Whop / Stripe / any other webhook-driven payment platform.**
+Stages 5 (forms persistence), 9 (membership plan-cache), and 10 (affiliate attribution) all reference `db.query(...)` and `getDb()`. The helper + DB provisioning are documented HERE because Stage 9 was historically the first to need it, but the helper is reusable: **whichever stage gets to DB-needing-work first provisions; the others just import from `server/db.js`**. For most marketing sites (no membership, but with forms), Stage 5 ends up doing this work. **This step is the same for Whop / Stripe / any other webhook-driven payment platform — and for plain form persistence with no payments at all.**
 
 #### Database choice
 

@@ -350,9 +350,19 @@ If the user accepts (most do), I save `project.brand_prefix = "mayas_"` to skill
 - Has any cleanup been done already?
 - (Critical for non_coder) Are any testimonials / team photos / "users" on the source site AI-generated or fictional? *(I flag this as a launch blocker if yes — FTC concern. We address in Stage 2.)*
 
-**Section C — Forms**:
-- What forms does the site have? (newsletter / contact / support / something else)
-- Where do form submissions currently go?
+**Section C — Forms** (discovery-driven; minimal user input here):
+
+I do NOT ask the user to enumerate forms or list fields. Stage 0 reads the source code and produces `forms-manifest.md` with every form's path, fields, current submission target, and inferred purpose. The user reviews that manifest at Stage 5 and confirms routing decisions per form.
+
+The only things I ask in onboarding for Section C are the integration-direction questions Stage 5 needs to plan for:
+
+- **Existing ESP / list provider?** *"Do you have an existing email service provider where you already manage subscriber lists? (Mailchimp, Klaviyo, ConvertKit, Beehiiv, HubSpot, ActiveCampaign, MailerLite, Brevo, etc.) If yes, I'll research that provider's current API + MCP options and integrate at Stage 5. If no, I default to Resend Audiences (in-band with the transactional email account from Section D)."*
+- **Existing CRM?** *"Do you have a CRM where form submissions should be routed? (HubSpot CRM, Salesforce, Pipedrive, Attio, Close, Folk, etc.) If yes, I research the CRM's API + MCP at Stage 5 and wire the integration. If no, skip."*
+- **DB capture default**: *"By default, every form submission is also captured into the project's PostgreSQL DB on Railway as a safety net so no data is ever lost. Confirm OK, or opt out (only recommended if you've confirmed your chosen CRM captures every form's data completely)."*
+
+If the user says "I don't know yet" to ESP/CRM, I defer to Stage 5 — when forms are actually being wired, there's a concrete decision moment.
+
+I save: `forms.esp_provider`, `forms.crm_provider`, `forms.db_capture_enabled` (default `true`).
 
 **Section D — Email**:
 - Any transactional emails to send (welcome, verify, password reset)?
@@ -526,6 +536,17 @@ The saved-config schema:
     "domain_verified": false
   },
 
+  "forms": {
+    "discovered": [],
+    "esp_provider": null,
+    "esp_credentials_pasted": false,
+    "crm_provider": null,
+    "crm_credentials_pasted": false,
+    "db_capture_enabled": true,
+    "db_capture_table": "form_submissions",
+    "per_form_routing": {}
+  },
+
   "analytics": {
     "stack": "both",
     "posthog": {
@@ -686,3 +707,4 @@ The user can always say one of these to change behavior:
 | 2026-05-08 | Added Step 5b: Cloudflare DNS recommendation with the WHY (free SSL, free DDoS, `cdn-cgi/trace`, fast TTL, Redirect Rules, Email Routing — all free tier) and the optional API token ask that unlocks autonomous DNS edits across Stages 4/5/10. Added `cloudflare_token` to saved-config schema. Honest fallback documented: if user declines token or uses different DNS provider, I generate paste-ready DNS-record instructions instead. |
 | 2026-05-08 | Added "Why install BOTH PostHog and Clarity" framing in Step 5: tools are complementary, not competing. PostHog free tier is 5,000 desktop + 2,500 mobile session replays/month; Clarity is effectively unlimited at any scale, making it the strong free-fallback past PostHog's recording cap. Section E now explicitly offers `both` (default) / `posthog_only` / `clarity_only` and discourages clarity-only unless extreme cost-paranoia. Schema gains `analytics.stack` field. |
 | 2026-05-08 | Added Section L (Object storage) with Railway Buckets vs Backblaze B2 decision framework. Default for private files: Railway Buckets (free egress, same invoice). Default for public media or when public-vs-private is uncertain: Backblaze B2 (public buckets supported, forecloses fewer future choices). Includes the caching gotcha (presigned URLs defeat browser + CDN caching for repeatedly-served files). "You decide" mode reads saved config and recommends with rationale. Schema gains `storage` block with `decided_by` field for transparency about Claude-default vs user-stated choices. Full reasoning in `_internal/reference-object-storage.md`. |
+| 2026-05-08 | Section C reframed: discovery-driven instead of interrogative. Stage 0's `forms-manifest.md` (extracted from source code) replaces the user-enumeration question. Section C now only asks the integration-direction questions (existing ESP? existing CRM? confirm DB capture default). Saved-config schema gains `forms` block with `discovered`, `esp_provider`, `crm_provider`, `db_capture_enabled` (default `true`), and `per_form_routing`. Default rule: capture every submission to PostgreSQL `form_submissions` table; opt-out gated on CRM-coverage confirmation. ESP/CRM integration uses research-first pattern (WebFetch vendor docs + WebSearch for MCP/SDK at integration time, not at skill-write time). Full framework in `_internal/reference-forms-and-persistence.md`. |

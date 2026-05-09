@@ -1,8 +1,8 @@
-# Stage 5: Email Provider
+# Stage 5: Email Provider + Forms Pipeline
 
 **Last verified: 2026-05-08.** Re-search `Resend MCP server <year>` before this stage if older than 60 days; an MCP didn't exist as of 2026-05 but may have shipped since.
 
-> **🤖 Re-grounding (re-read at start of stage)**: I (Claude) wire up transactional email — install the SDK, write the transport abstraction, populate the form endpoints in `server.js`, write the email templates, set the Railway env vars, and run the end-to-end test. The user's actions: (1) sign up at the email provider's dashboard once and paste the API key into a project-local file, (2) add DNS records the provider gives me (or grant me a Cloudflare API token so I can do it via Cloudflare's API). Everything else I do autonomously.
+> **🤖 Re-grounding (re-read at start of stage)**: I (Claude) wire up transactional email AND the full forms pipeline: I generate one `/api/<form-name>` endpoint per form discovered in Stage 0's `forms-manifest.md`, each with the four-layer model (validate → DB capture → notification email → ESP segment sync → CRM sync → PostHog event). The user's actions: (1) sign up at the email provider's dashboard once and paste the API key, (2) add DNS records (or grant Cloudflare API token), (3) review the per-form routing suggestions I generate and confirm the ESP segment / CRM stage mappings. Everything else I do autonomously, including LIVE researching the user's specific ESP and CRM at integration time so the generated code reflects each vendor's current API.
 
 ## Required-values check (run at stage start)
 
@@ -11,13 +11,31 @@ I read `<project>/.skill-config.json` per the [universal pattern in SKILL.md](SK
 - `email.sending_domain` — must be a domain the user controls. If unset, I prompt; this is blocking because DKIM/SPF setup needs it.
 - `email.from_address` — full RFC-5322 form like `"Brand Name <hello@<sending-domain>>"`. If unset, I propose `"<project.brand> <hello@<sending-domain>>"` and confirm.
 - `email.notify_to` — where contact-form / signup notifications go (typically the user's own inbox or a team alias). If unset, default to `hello@<sending-domain>` and confirm.
-- The user's API key, pasted into `<project>/.secrets/<provider>-api-key.txt` — I prompt for this when I need it. **Parallel work I can do while waiting**: write the transport abstraction module, the email templates, and the form-endpoint wiring in `server.js`. The actual `railway variable set` of the key is the only step that blocks on the paste.
+- The user's API key, pasted into `<project>/.secrets/<provider>-api-key.txt` — I prompt for this when I need it. **Parallel work I can do while waiting**: write the transport abstraction module, the email templates, and the form-handler factory plumbing. The actual `railway variable set` of the key is the only step that blocks on the paste.
+- **Stage 0's `forms-manifest.md`** must exist at repo root. Stage 0's "Forms — full structural extraction" section produces it. If missing, I run Stage 0's form-discovery sub-step inline before proceeding.
+- `forms.esp_provider` and `forms.crm_provider` from onboarding (may be `null`; user can defer the decision to this stage's per-form review step).
+- `forms.db_capture_enabled` (default `true`) — drives whether Layer A of the four-layer model fires.
 
 ## What I'm doing in this stage
 
-Wiring up transactional email so Stage 3's `/api/newsletter` and `/api/contact` endpoints (and any other forms from Stage 0) actually send mail. Building behind a swappable transport abstraction so future provider migrations are mechanical.
+Two coupled jobs:
 
-**Time**: 10–20 minutes of automated work, plus DNS-verification wait time (usually 5 minutes to a few hours, runs in parallel with other work).
+**Part A — Transactional email**: install the email-provider SDK, write a swappable transport abstraction so future provider migrations are mechanical, verify the sending domain via DKIM/SPF/return-path DNS records.
+
+**Part B — Forms pipeline**: read `forms-manifest.md` from Stage 0 and generate one handler per form using the four-layer model documented in [`_internal/reference-forms-and-persistence.md`](_internal/reference-forms-and-persistence.md):
+
+```
+validate → DB capture (default ON) → notification email (default ON if EMAIL_NOTIFY_TO set)
+        → ESP segment sync (only if user mapped this form to a segment)
+        → CRM sync (only if user mapped this form to a stage)
+        → PostHog <form_name>_completed event
+```
+
+Per-form routing decisions are confirmed with the user via Steps F1–F6 in the reference doc. The user does NOT re-list fields or re-state form purposes — Stage 0 already discovered those by reading the code. The user only confirms routing (which segment, which CRM stage, opt-out of DB capture if applicable).
+
+**At ESP/CRM integration time, I do live research** — WebFetch the vendor's current API docs, search for `<vendor> MCP server <year>`, search for an official Node SDK — and generate the integration code based on what I find that day. I do NOT use stale, pre-baked recipes. Vendor-specific procedures evolve faster than this skill can; the research-first pattern survives.
+
+**Time**: 15–30 minutes of automated work for Part A + Part B combined. Plus DNS-verification wait time (5 minutes to a few hours, runs in parallel) and any user back-and-forth on per-form routing decisions.
 
 ## Default recommendation: Resend
 
@@ -251,9 +269,23 @@ export async function sendEmail(msg) {
 - **Fail-fast on missing addresses, lazy on the transport.** Required addresses (`EMAIL_FROM`, `EMAIL_NOTIFY_TO`, `SITE_URL`) throw at import time in production, so the deploy fails loudly if the user forgot to set them on Railway. The Resend transport itself is lazy: if `RESEND_API_KEY` is unset, the module falls through to the console transport and the server boots — appropriate for staging or dev environments where transactional email isn't load-bearing. The reason for the asymmetry: the addresses ship as build-time invariants the user verified at Stage 1, so missing-at-deploy means broken-everywhere; the API key is more dynamic and might genuinely be unset on a non-prod environment.
 - **`EMAIL_FROM` must be on a Resend-verified domain.** Stage 5's verification step confirms this. If the user later changes the sending domain, the deploy will silently send 422s — gotcha section below covers this.
 
-### Step 5: I wire form endpoints in `server.js`
+### Step 5: I wire form endpoints from `forms-manifest.md`
 
-I update Stage 3's `server.js` to populate the form-handler placeholders:
+I read `forms-manifest.md` (produced by Stage 0) and generate ONE handler per form using the form-handler factory pattern from [`_internal/reference-forms-and-persistence.md`](_internal/reference-forms-and-persistence.md). The endpoint paths come from each form's `name` (e.g., `name: "newsletter_signup"` → `/api/newsletter-signup`); they are NOT hardcoded to `/api/newsletter` and `/api/contact`.
+
+The four-layer model runs in every handler:
+1. **Validate** against the form's discovered field schema
+2. **DB capture** (Layer A; default ON) — `INSERT INTO form_submissions`
+3. **Notification email** (Layer B; default ON if `EMAIL_NOTIFY_TO` set) — to user's inbox
+4. **ESP segment sync** (Layer C; only if user mapped this form to a segment)
+5. **CRM sync** (Layer D; only if user mapped this form to a stage)
+6. **PostHog event** — `<form_name>_completed`
+
+Per-form routing decisions live in `forms.per_form_routing` in skill config — populated during Steps F1–F6 in the reference doc.
+
+**The illustrative example below shows what a generated handler looks like for two common form shapes** (newsletter + contact). The actual handlers I generate match whatever forms `forms-manifest.md` describes — the names, fields, and routing differ per project. I do NOT hardcode `/api/newsletter` and `/api/contact`.
+
+**Example — newsletter (single-email form, generated from a manifest entry):**
 
 ```js
 import { sendEmail, EMAIL_FROM, EMAIL_NOTIFY_TO, SITE_URL } from "./server/email.js";
@@ -319,7 +351,24 @@ app.post("/api/contact", async (req, res) => {
 });
 ```
 
-I add similar handlers for any other forms Stage 0 catalogued (support, beta-signup, lead-magnet, etc.). The structure stays the same: validate → send confirmation to user + notification to team → return success.
+I add similar handlers for any other forms Stage 0 catalogued (support, beta-signup, lead-magnet, request-demo, get-a-quote, event-RSVP, custom forms — whatever `forms-manifest.md` describes). The structure stays the same: validate against discovered schema → DB capture → notification email → optional ESP/CRM sync → PostHog event → return success.
+
+**The example handlers above are simplified for illustration** (they show only Layers B + email notifications). The factory-generated handlers in production include all four layers per the reference doc, with the DB / ESP / CRM steps gated on each form's routing config.
+
+### Step 5b: I orchestrate the per-form routing review with the user
+
+After generating the handler skeletons, I walk the user through Steps F1–F6 from [`_internal/reference-forms-and-persistence.md`](_internal/reference-forms-and-persistence.md):
+
+- **F1**: Confirm DB capture default (recommended ON; opt-out gated on CRM coverage)
+- **F2**: Per-form review of inferred routing (with the user accepting or adjusting per form)
+- **F3**: ESP credential paste + live research of the user's ESP API → segment pick-list
+- **F4**: CRM credential paste + live research of the user's CRM API → stage pick-list
+- **F5**: I generate the production handlers from manifest + routing config + research
+- **F6**: End-to-end synthetic-submission test per form
+
+The reference doc has the full flow + the form-handler factory code template + the `form_submissions` table schema. This stage's job is to execute that flow against the specific user's project.
+
+**While I'm waiting for the user to paste ESP / CRM credentials**, I do parallel work that doesn't depend on them: generate the handler skeletons with Layer A + B already wired, write the validation schemas, write the email templates, write the synthetic-test scripts. When the user pastes credentials, I add the Layer C / D wiring and run the F6 verification.
 
 ### Step 6: I write email templates
 

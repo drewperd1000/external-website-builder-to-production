@@ -151,9 +151,20 @@ app.use((req, res, next) => {
 });
 
 // ─── 2. Form submission endpoints ───────────────────────────────────────
-// Stage 5 populates these with email-provider-backed handlers.
-// app.post("/api/newsletter", async (req, res) => { ... });
-// app.post("/api/contact",    async (req, res) => { ... });
+// Stage 5 populates these with handlers generated from the forms manifest
+// produced by Stage 0. ONE endpoint per form; the path is derived from
+// the form's `name` in the manifest (e.g., name: "newsletter_signup" →
+// path: "/api/newsletter-signup"). The endpoints below are illustrative;
+// the actual list comes from `forms-manifest.md`. Common examples:
+//   app.post("/api/newsletter-signup", async (req, res) => { ... });
+//   app.post("/api/contact",           async (req, res) => { ... });
+//   app.post("/api/request-demo",      async (req, res) => { ... });
+//   app.post("/api/event-rsvp",        async (req, res) => { ... });
+//   app.post("/api/get-a-quote",       async (req, res) => { ... });
+// Each handler: validate per the form's discovered schema → persist to
+// form_submissions table (default; per Stage 5 / reference-forms-and-persistence)
+// → notify-email (optional) → ESP segment sync (optional) → CRM sync
+// (optional) → fire <form_name>_completed PostHog event.
 
 // ─── 3. Service worker files — short cache + explicit headers ───────────
 // Only relevant if migrating off a previously-served domain (PWA or otherwise). The tombstone SW
