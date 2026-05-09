@@ -95,6 +95,22 @@ Two more dashboard items, takes about 5 minutes:
 
 When the user pastes both secrets, I save them to project-local `.secrets/` files and proceed.
 
+### Step 2b (optional): I install Whop's MCP if available
+
+Whop has shipped an MCP server for chat-driven Whop operations (verified the existence as of 2026-05; I check the current endpoint via `docs.whop.com` or Whop's developer page right before this step since the URL may have shifted). **The Whop MCP often does NOT appear in Claude Code's built-in Connectors picker** — it's added as a Custom Connector.
+
+Two paths to add it:
+
+- **Path A (vendor-driven)**: I open Whop's MCP / developer-tools page that has the "Add to Claude Code" button. The user clicks it, Claude Code prompts to approve, done.
+- **Path B (manual)**: I add the MCP entry to the user's Claude Code config directly — server URL from Whop's docs, transport SSE, auth OAuth or API-key paste depending on what Whop's MCP supports today.
+
+What having the Whop MCP unlocks:
+- Querying products, plans, and members from chat ("show me the last 10 cancellations")
+- Listing affiliates and their performance without leaving the session
+- Adjusting pricing or pausing plans without dashboard context-switching
+
+If the MCP isn't yet shipped or the user can't add it, this stage proceeds via Whop's REST API + the API key from Step 2 — no functionality is lost, just chat-driven convenience.
+
 ### Step 3: I provision the database + write the `getDb()` helper
 
 Stages 5 (forms persistence), 9 (membership plan-cache), and 10 (affiliate attribution) all reference `db.query(...)` and `getDb()`. The helper + DB provisioning are documented HERE because Stage 9 was historically the first to need it, but the helper is reusable: **whichever stage gets to DB-needing-work first provisions; the others just import from `server/db.js`**. For most marketing sites (no membership, but with forms), Stage 5 ends up doing this work. **This step is the same for Whop / Stripe / any other webhook-driven payment platform — and for plain form persistence with no payments at all.**

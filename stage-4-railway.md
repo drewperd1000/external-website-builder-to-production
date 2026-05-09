@@ -56,7 +56,12 @@ Bearer-token auth (`RAILWAY_TOKEN` from dashboard). I almost never use this from
 
 I check current state via `railway whoami`. If not authenticated, I run `railway login`, which opens a browser tab for the user to click "Approve". After approval, the CLI caches the token at `~/.railway/` — every subsequent CLI call I make is autonomous.
 
-For the MCP, I check if it's configured in the user's Claude Code instance. If not, I add it to the user's MCP config (`https://mcp.railway.com` over SSE). On first call, the user clicks "Approve" in a browser tab one more time — same OAuth flow.
+For the MCP, I check if it's configured in the user's Claude Code instance. **The Railway MCP may not appear in Claude Code's built-in Connectors picker** — this is normal and expected. It's added as a Custom Connector via the SSE endpoint `https://mcp.railway.com`. Two paths to add it:
+
+- **Path A (vendor-driven; usually easier)**: I open Railway's docs page that has the "Add to Claude Code" button. The user clicks it, Claude Code prompts to approve, done. URL: `docs.railway.com/ai/mcp-server` (verified 2026-05).
+- **Path B (manual)**: I add the entry to the user's MCP config directly — server URL `https://mcp.railway.com`, transport `SSE`, auth `OAuth`. The user clicks "Approve" in a browser tab on first call.
+
+I prefer Path A when available because it eliminates a config-file edit. If the user's Claude Code version is older and doesn't support the vendor-driven add flow, Path B always works.
 
 If the CLI isn't installed yet, I run `npm install -g @railway/cli` first.
 

@@ -177,6 +177,26 @@ Plus three cross-cutting reference files (kept under `_internal/` because they'r
 - **[`_internal/reference-object-storage.md`](_internal/reference-object-storage.md)** — Railway Buckets vs Backblaze B2 decision framework, the public-URL caching gotcha, and the rule for defaulting to Backblaze when the public-vs-private question is uncertain.
 - **[`_internal/reference-forms-and-persistence.md`](_internal/reference-forms-and-persistence.md)** — the four-layer model for every form (validate → DB capture → notify-email → ESP segment sync → CRM sync → PostHog event), default-DB-capture rule with CRM-coverage opt-out gate, and the research-first pattern for ESP/CRM integrations (live-fetch the vendor's API at integration time, not at skill-write time).
 
+## A note on Custom Connectors (MCPs not in Claude Code's built-in list)
+
+Several vendors this skill integrates with have shipped MCP servers that **may not appear in Claude Code's built-in Connectors picker**. They can still be added — Claude Code supports "Custom Connector" / custom MCP server URLs added directly through the user's settings or via the vendor's own setup wizard.
+
+**Specific cases I encounter in this skill** (verified 2026-05; vendor MCP availability shifts continuously):
+
+| Vendor | MCP endpoint | How to add (if not in built-in Connectors) |
+|---|---|---|
+| **Railway** | `https://mcp.railway.com` (SSE) | Custom Connector via Claude Code settings, OR Railway's own setup page links to the install. OAuth approve once. |
+| **Whop** | Whop has shipped an MCP for content/community/course operations (the exact endpoint may have shifted; I verify at Stage 9). | Custom Connector — Whop's docs page usually has an "Add to Claude Code" button. |
+| **PostHog** | Built-in installer: `npx @posthog/wizard@latest mcp add` handles config + OAuth in one step. Listed in Connectors on most current Claude Code versions. |
+| **Microsoft Clarity** | API-token-paste install (no OAuth). May require manual config rather than Connectors UI. |
+
+**My discipline** when a vendor MCP isn't appearing in the user's Connectors picker:
+1. I check the vendor's own docs page for "Claude Code" / "MCP server" instructions — most vendors who ship an MCP also publish setup steps.
+2. If those instructions exist, I walk the user through the Custom Connector add path (settings → MCP → add custom → paste URL → approve OAuth).
+3. If no MCP exists for that vendor, I fall back to REST API + API key paste (the pattern Stage 5 uses for Resend, which has no MCP yet as of 2026-05).
+
+The user shouldn't need to know which vendors are in the built-in Connectors picker vs. which need Custom Connector setup — I just walk them through whichever path applies for each integration.
+
 ## Technical invariants Claude follows when writing code
 
 There are six silent-failure modes Claude needs to avoid when writing the code for this skill (Vite build-time bake, proxy ordering, super-property timing, vendored static, Clarity masking layers, privacy-posture lock-in). The user doesn't need to memorize these — what matters is the outcome: analytics work, masking works, consent banner shows in the right places.
