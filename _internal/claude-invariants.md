@@ -100,10 +100,36 @@ The forbidden-strings list lives in this file's "Audit checklist" section below;
 
 ## Audit checklist
 
-Pattern list to grep against the entire skill before any final-version claim:
+Pattern list to grep against **the skill execution surface** before any final-version claim:
 
 ```
 Drew|Whisperliminals|whisperlimin|RESTorative|restorativeco|getrestco|MintCRO|whisper-user-benefits|wl_analytics|wl_geo_country|wl_affiliate|#c9a96e|#f5f5f0|#0a0a0f|#3a3a3a|#9b9b9b|#eeeae0|mcp__scheduled-tasks__|America/Los_Angeles|RCW 19\.373|biz_1mHZqSNpmgJYkp|phc_va9w|wge0ywzwks
 ```
 
-Zero matches = ready for final-version commit. Any match = revisit + abstract before commit.
+### Scope of the audit
+
+The audit applies to files Claude actually reads during a skill run — these are the surfaces that pollute the user's session if they leak author-specific strings:
+
+- `SKILL.md`
+- `onboarding.md`
+- All `stage-*.md` files
+- All files under `_internal/`
+- `examples/README.md`
+
+The audit does NOT apply to:
+
+- `LICENSE` — MIT copyright attribution requires a legal author name; this is required repo metadata, not a leak.
+- `README.md` at the repo root — the GitHub landing page. Author attribution like `[@<github-handle>](...)` and the "Background" section's credit are intentional. The README is for humans browsing the repo, not for Claude during execution.
+- `.gitignore`, `.git/`, anything outside the scope above.
+
+### Expected matches inside this file
+
+Two matches in this file (`_internal/claude-invariants.md`) are intentional and self-referential:
+- The discussion-prose example mentioning `whisper-user-benefits` as the example forbidden slug.
+- The regex pattern itself (it has to literally contain the strings it forbids).
+
+These are not leaks. They're the rule definition.
+
+### Verdict
+
+Zero **unintended** matches across the audit-scope files = ready for final-version commit. Any other match = revisit + abstract before commit.

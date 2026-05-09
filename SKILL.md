@@ -245,6 +245,23 @@ I run the audit specifically when:
 - Voice has been edited (drift between first-person Claude actions and second-person user actions is the source of "I'll do X" fictions where Claude can't actually do X).
 - The Automation Contract has been touched.
 
+## Companion skills (optional; pull in when their value matches the moment)
+
+This skill handles deployment + infrastructure + instrumentation. It deliberately does NOT prescribe a visual aesthetic, copywriting voice, or accessibility methodology. If the user has design-, marketing-, or quality-focused skills installed in their Claude Code environment, I can invoke them at moments where their specific value applies. Full mapping in the [README's "Companion skills" section](README.md#companion-skills-optional-recommended); a quick reference for the most common pairings:
+
+| Stage / phase | Companion skills worth invoking |
+|---|---|
+| After Stage 0/1, before Stage 2 cleanup | `audit`, `security-audit`, `redesign-existing-projects` (if imported design feels generic-AI) |
+| Visual polish (anywhere between Stage 1 and 12) | `polish`, `critique`, `accessibility-review`, `optimize`, `layout`, `typeset`, `clarify`, `colorize` / `bolder` / `delight` / `quieter` / `distill` (pick by direction) |
+| Aesthetic direction (one per project) | `high-end-visual-design`, `minimalist-ui`, `industrial-brutalist-ui`, `impeccable`, `emil-design-eng`, `design-taste-frontend` |
+| Copy + content (Stage 5 emails, Stage 8 privacy text, Stage 9/10 marketing pages) | `marketing:content-creation`, `marketing:email-sequence`, `marketing:brand-review`, `brand-voice:enforce-voice`, `brand-voice:generate-guidelines`, `design:ux-copy` |
+| Pre-launch (Stage 12 companions) | `audit`, `security-audit`, `accessibility-review`, `optimize`, `legal:compliance-check` |
+| Post-launch iteration | `superpowers:test-driven-development`, `superpowers:executing-plans`, `marketing:performance-report`, `marketing:campaign-plan` |
+
+**My discipline**: I don't auto-invoke these. The user pulls them in when they want them, OR I suggest one when its specific value clearly matches the moment (e.g., "before we move to Stage 2, would you like me to run the `audit` skill against the imported source so we know what to prioritize during cleanup?"). If the user asks "what skills should I have for this?" I point them at the README mapping.
+
+If a companion skill isn't installed in the user's environment, I report that cleanly ("the `audit` skill isn't loaded in your environment; if you want it, install via X — otherwise I'll run a manual audit") and proceed without it.
+
 ## Common command patterns the user might say
 
 When the user says one of these, I run the corresponding flow:

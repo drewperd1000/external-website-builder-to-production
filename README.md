@@ -123,6 +123,98 @@ git pull
 
 The bottom of each stage file has a Changelog section dated by when it last shifted.
 
+## Companion skills (optional, recommended)
+
+This skill handles **deployment, infrastructure, and instrumentation**. It deliberately does NOT prescribe a visual aesthetic, copywriting voice, or accessibility-pass methodology — those are domains where dedicated skills exist and do a better job. If you have any of the skills below installed in your Claude Code environment, you can pair them with this skill at specific moments for substantially better outcomes.
+
+These are all OPTIONAL. The skill works without them. Each one is a focused tool that complements rather than replaces what's here.
+
+### During discovery + cleanup (Stages 0 → 2)
+
+| Skill | Use when |
+|---|---|
+| `audit` | After Stage 0 completes, run a baseline audit of the source code's accessibility, performance, theming, and anti-patterns. Generates a P0–P3 severity report that informs what Stage 2 should fix. |
+| `security-audit` | If the source code includes any auth, payment, or PII handling, run before Stage 2 — surfaces vulnerabilities the migration would otherwise carry forward. |
+| `redesign-existing-projects` | If the imported design feels generic-AI ("we built this in Lovable / Bolt / v0"), run after Stage 1's baseline build to upgrade aesthetics before the visual layer hardens. |
+
+### During visual polish (anywhere between Stage 1 and Stage 12)
+
+These skills shine when you have a deployed site that works but doesn't yet feel right.
+
+| Skill | Use when |
+|---|---|
+| `polish` | Final pre-launch quality pass — alignment, spacing, micro-detail issues. Pairs well with Stage 12. |
+| `critique` | Get structured UX feedback with quantitative scoring. Run after Stage 1 or Stage 11 when you want a sharp second opinion. |
+| `design:accessibility-review` or `accessibility-review` | WCAG 2.1 AA audit. Pair with Stage 12's pre-launch checks. |
+| `optimize` | UI performance — loading speed, rendering, animations, bundle size. Pair with Stage 12's Lighthouse pass. |
+| `layout` | Layout, spacing, visual hierarchy fixes. Useful any time the imported design feels "off." |
+| `typeset` | Typography improvements — font choice, hierarchy, sizing. |
+| `clarify` / `design:ux-copy` | UX copy improvements — error messages, empty states, microcopy, CTA labels. Especially valuable on the privacy banner copy from Stage 8. |
+| `distill` / `quieter` | If the design is over-stimulating — strip noise, calm intensity. |
+| `colorize` / `bolder` / `delight` | If the design is too monochromatic / too safe / too plain — add color, character, joy. |
+| `animate` | Add purposeful motion. Use sparingly; the skill's variant tracking captures hover/click events that animation should support, not distract from. |
+
+### Aesthetic direction (pick one if you want a specific style)
+
+These set a consistent design vocabulary across the site. Choose at most ONE per project:
+
+- `high-end-visual-design` — agency-level defaults; expensive-feeling
+- `minimalist-ui` — clean editorial, warm monochrome, no gradients
+- `industrial-brutalist-ui` — raw mechanical, Swiss + military-terminal
+- `impeccable` — distinctive, production-grade, anti-generic
+- `emil-design-eng` — Emil Kowalski's polish philosophy
+- `design-taste-frontend` — opinionated senior-engineer design defaults
+
+### During copy + content work
+
+The skill writes minimal copy by default (privacy policy text, banner labels, email subject lines). For everything beyond that:
+
+| Skill | Use when |
+|---|---|
+| `marketing:content-creation` / `marketing:draft-content` | Writing blog posts, landing-page copy, social, email newsletters. Pairs with Stage 5 (email templates) and any marketing pages outside the deployed flow. |
+| `marketing:email-sequence` | Designing onboarding, nurture, or re-engagement drip sequences. Pairs with Stage 5 (Resend) and Stage 9 (post-purchase emails). |
+| `marketing:brand-review` | Audit existing copy against brand voice — flag deviations, suggest fixes. |
+| `brand-voice:enforce-voice` | Apply existing brand guidelines to anything I'm generating (privacy policy text, autoresponder body, dashboard descriptions). |
+| `brand-voice:generate-guidelines` | If no brand voice doc exists yet, generate one from existing materials. Run BEFORE writing site copy so subsequent generations stay consistent. |
+| `marketing:seo-audit` | After launch, run a comprehensive SEO audit — keyword research, on-page, technical, competitor gaps. |
+
+### During pre-launch verification (Stage 12 companions)
+
+| Skill | What it adds beyond Stage 12's built-in checks |
+|---|---|
+| `audit` | Comprehensive technical quality report with severity ratings |
+| `security-audit` | Compliance + auth + PII review; especially valuable for sites with memberships (Stage 9) |
+| `accessibility-review` | WCAG 2.1 AA pass with specific remediation suggestions |
+| `optimize` | Performance targets + remediation plan if Lighthouse scores aren't where you want |
+| `legal:compliance-check` | Verify privacy posture choices against applicable regulations beyond what Stage 8 covers |
+
+### For ongoing iteration (post-launch)
+
+| Skill | When |
+|---|---|
+| `superpowers:test-driven-development` | When adding features after launch — write the test first, ship the feature second |
+| `superpowers:executing-plans` | When a feature is large enough to warrant a written plan you'll execute over multiple sessions |
+| `superpowers:requesting-code-review` | Before merging non-trivial PRs |
+| `cross-device-workflow` | If you're hopping between Claude Code Desktop, Web, and Mobile while iterating |
+| `marketing:performance-report` | Weekly / monthly / quarterly marketing performance summaries from your PostHog data (Stage 11 dashboards feed this) |
+| `marketing:campaign-plan` | Planning launch campaigns, lead-gen pushes, or announcement waves |
+
+### How to invoke a companion skill mid-flow
+
+When this skill is running and you want to pull in a companion, just ask Claude in plain language:
+
+```
+"Run the audit skill against what we just built before moving to Stage 2."
+
+"Apply the minimalist-ui aesthetic to the pages we have so far."
+
+"Use brand-voice:enforce-voice on the privacy policy draft."
+
+"Run accessibility-review on /pricing."
+```
+
+Claude will invoke the relevant skill, apply its output to the current project state, then return to wherever this skill was in its execution sequence. Companion skills don't disrupt the 13-stage flow — they're tools you reach for when their specific value matches the moment.
+
 ## Voice + automation contract
 
 The skill follows a strict voice convention so you always know who's doing what:
@@ -166,3 +258,17 @@ MIT — see [LICENSE](LICENSE) for the full text. Use it freely, fork it, adapt 
 ## Background
 
 This skill was built by [@drewperd1000](https://github.com/drewperd1000) to consolidate the production-stack patterns learned from shipping marketing sites and apps in 2026. The patterns are vendor-current as of 2026-05; the skill's self-research instruction tells Claude to re-verify the externally-versioned facts (MCP tool names, CLI verbs, pricing tiers) before any stage older than 60 days.
+
+### How this skill was built (skills used during its construction)
+
+The skill itself was authored using TDD-for-documentation discipline borrowed from [`superpowers:writing-skills`](https://github.com/anthropics/superpowers): write the failing test (a pressure scenario where Claude violates the rule the skill is supposed to teach), watch it fail, write the minimum doc that addresses that violation, watch it pass, refactor for loophole-closing. Every section of every stage file traces back to a real failure mode caught in production, not to a hypothetical concern.
+
+A few patterns surfaced during construction that may be useful if you fork this skill:
+
+- **Forbidden-strings audit on every commit** — `_internal/claude-invariants.md` contains a regex pattern of brand/project-specific strings that should NEVER appear in the user-facing skill body. The audit ran before each correction-pass commit. Caught real leaks the surface-level review missed.
+- **Voice contract enforcement** — first-person ("I run...") only when Claude can actually execute via tools; second-person ("Please open...") only when the user must act; mixed when it's input + processing. Drift toward "I'll open your browser" / "I'll sign you up" was caught and fixed multiple times during the build.
+- **Required-values check pattern** — the meta-pattern in SKILL.md that every stage references at start-of-stage. Eliminates the silent-substitution failure mode where a missing config value gets replaced by placeholder garbage that ships to production.
+- **Multi-perspective auditing** — different subagents (expert / new-user / marketer) returned substantially different findings. Single-perspective review missed real issues.
+- **Cross-platform shell discipline** — the skill avoids `$(...)` substitution in command examples (PowerShell incompatibility). Every shell snippet was audited for Windows + macOS + Linux execution.
+
+If you're building your own Claude Code skill and want the same construction discipline, the `superpowers:writing-skills` skill is where the methodology lives.
