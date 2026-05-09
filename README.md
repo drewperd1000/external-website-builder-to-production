@@ -7,27 +7,40 @@ A Claude Code skill that takes a website built somewhere else — Webflow, Frame
 ## What you get when this skill runs end-to-end
 
 - **A Railway-deployed Vite + React + Express site** at your custom domain
-- **PostHog analytics** with a same-origin reverse proxy (recovers 10–25% of events that ad-blockers would otherwise drop), `loaded`-callback init pattern (no race), and build-time deploy + variant identifiers attached to every event to enable A/B/n testing of every page individually in addtion to global website versions
+- **Cloudflare MCP integration** for easily connecting the correct domain settings, etc. You can opt for using your own Domain regsitrar DNS service, but you'll need to do more manual work.
+- **PostHog analytics** with
+  - **same-origin *internal* reverse proxy** - this recovers **10–25% of events** that ad-blockers would otherwise drop (!!! 🤯)
+  - `loaded`-callback init pattern (no race), and build-time deploy + both global- and page-variant identifiers attached to every event. This enables A/B/n testing of every page individually in addtion to global website versions.
+  - **Granular Tracking** by every CTA text, Button, etc that you want to understand the performance of
+  - **Prebuilt variant-tracking dashboards** for sequential CRO iteration with 6+ pre-built PostHog dashboards
+  - **Easy creation of additional custom dashboards in PostHog:** detailed, unlimited dashboards for measuring every metric you might be interested in (and filtering out the metrics you're not)
+  - **this altogether gives you MORE power than the highest Mouseflow subscription tier**
 - **Microsoft Clarity** heatmaps + session replay alongside PostHog (the unlimited free-fallback for replay capacity past PostHog's free-tier cap of 5k desktop / 2.5k mobile sessions per month). Clarity offers richer UI/UX experience for visual analysis.
-- **Resend** transactional email behind a swappable transport abstraction (welcome emails, contact-form notifications, autoresponders) with DKIM/SPF wired
-- **A geo-aware cookie consent banner** that adapts to your privacy posture (strict / standard / light) with three-layer Clarity content masking
-- **Optional: payments + memberships** via Stripe (default), Whop (recommended for content/community/course businesses), or Skool / Lemonsqueezy / Paddle / Gumroad — with HMAC-verified webhooks forwarding subscription events server-side to PostHog
-- **Optional: affiliate program** with multi-layer attribution surviving cookie deletion, Safari ITP, AND ad-platform username changes
-- **Optional: variant tracking** for sequential CRO iteration with 6+ pre-built PostHog dashboards
-- **A pre-launch checklist** that catches the silent-failure modes before paid traffic hits the site
+- **Resend** transactional email behind a swappable transport abstraction (welcome emails, contact-form notifications, autoresponders) with DKIM/SPF wired. ('Swappable' means you can easily plug-in your own perferred ESP... easy ESPeasy).
+- **A geo-aware cookie consent banner** that adapts to your privacy posture (strict / standard / light) with three-layer Clarity content masking. Allows you to geo-fence to only show banners to GDPR locales, to GDPR+California, etc. You choose your risk-comfort level. This is highly contingent on your marketing niche.
+- **Optional: payments** via Stripe (default)
+- **Optional: memberships** Whop (our default recommendation for content/community/course businesses) with HMAC-verified webhooks forwarding subscription events server-side to PostHog. You can swap in Skool / Lemonsqueezy / Paddle / Gumroad, etc.
+- **Optional: affiliate program tools and tracking** with
+  - multi-layer attribution surviving cookie deletion, Safari ITP, AND ad-platform username changes.
+  - Automated short-URL creation for affiliates via Switchy.io API ($39 LTD via Appsumo with very easy set-up)
+  - The native integration here is with Whop's affiliate program, but the tools contained provide easy tracking and integration with any affiliate program that provides API or webhook access. 
+- **A pre-launch checklist** that catches the otherwise silent-failures before paid traffic hits the site
 
 The skill ships 13 stages (0 through 12), each with a "Last verified" date and re-research instructions for when vendor APIs evolve.
 
 ## Prerequisites
 
-- **Claude Code** ([install](https://docs.anthropic.com/claude-code))
+- **Claude Code** ([install](https://docs.anthropic.com/claude-code)) - you can likely sub-in Codex, etc, but results have only been tested with Claude.
+
+*Your LLM can then help you get the following set up via the Skill:*
 - **Node.js ≥ 20** ([install](https://nodejs.org/))
 - **Git** ([install](https://git-scm.com/))
 - **GitHub CLI** (`gh`) ([install](https://cli.github.com/))
+- **GitHub MCP** - connect via "connectors" inside Claude Code
 - A **Railway** account (free tier works for getting started)
-- Optional accounts created during the skill run: PostHog, Microsoft Clarity, Resend, Cloudflare, Stripe / Whop / etc.
+- Optional accounts created during the skill run: PostHog, Microsoft Clarity, Backblaze, Resend, Cloudflare, Stripe / Whop / etc. The onboarding process will get this sqaured away for you. 
 
-The skill walks you through signing up at each vendor when it's time. You don't need them all upfront.
+The skill walks you through signing up at each vendor when it's time. You don't need them all upfront. You have the option of doing them all upfront in order to allow the Skill to run more autonomously. 
 
 ## Install
 
@@ -115,7 +128,9 @@ examples/
 
 ## Updating
 
-This skill evolves as vendor APIs change. To pull updates:
+This skill may or may not evolve over time. The skill is designed to research and find the current best-practices for each vendor as vendor APIs change, as MCPs become available and as vendor resources and offerings change. 
+
+If we make updates directly to the Skill, you may pull updates:
 
 ```bash
 cd ~/.claude/skills/external-website-builder-to-production
@@ -124,7 +139,7 @@ git pull
 
 The bottom of each stage file has a Changelog section dated by when it last shifted.
 
-## Companion skills (optional, recommended)
+## Companion skills (optional, highly recommended)
 
 This skill handles **deployment, infrastructure, and instrumentation**. It deliberately does NOT prescribe a visual aesthetic, copywriting voice, or accessibility-pass methodology — those are domains where dedicated skills exist and do a better job. If you have any of the skills below installed in your Claude Code environment, you can pair them with this skill at specific moments for substantially better outcomes.
 
