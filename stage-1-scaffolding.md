@@ -43,12 +43,25 @@ If they pick (a), I create `~/projects/<slug>/` (or the platform equivalent). If
 
 ### Step 2: I extract / clone / scaffold the source
 
+**Invariant: I never introduce a subdirectory between the project folder and the project files.** Doing so puts `.git` one level too deep (`<project>/wrapper/.git` instead of `<project>/.git`), which breaks any tool that auto-walks upward to find the nearest repo (`git rev-parse --show-toplevel`, IDE Git plugins, `gh` CLI, etc.). This was a real multi-script recovery on a prior Readdy import — don't recreate it. Project files land DIRECTLY at the project root.
+
 Branching on origin platform (which I know from onboarding):
 
-- **Zip from a website builder**: I extract to the workspace location.
-- **Existing GitHub repo**: I run `git clone <url>` to the workspace location.
-- **Hot-pulled HTML/CSS/JS from production**: I scaffold a fresh Vite + React project with `npm create vite@latest`, then copy the user's files in.
-- **Starting fresh**: I scaffold a fresh Vite + React + TypeScript + Tailwind project.
+- **Zip from a website builder**: I extract directly into the project folder (no wrapper). Either shape works — I pick whichever reads cleanly:
+  ```bash
+  # Option A — make the project folder first, then unzip into it
+  mkdir <project-slug>
+  cd <project-slug>
+  unzip "<path-to-zip>" -d .
+
+  # Option B — unzip into the named folder, then cd
+  unzip "<path-to-zip>" -d <project-slug>
+  cd <project-slug>
+  ```
+  Both leave `.git` at `<project-slug>/.git` after Step 6's `git init`. **NEVER** `unzip ... -d extracted; cd extracted` — that creates the wrapper this invariant forbids.
+- **Existing GitHub repo**: I run `git clone <url> <project-slug>` (NOT `git clone <url>` into a wrapper-then-rename pattern), and `cd <project-slug>`. Same no-wrapper rule.
+- **Hot-pulled HTML/CSS/JS from production**: I scaffold a fresh Vite + React project at the project root with `npm create vite@latest <project-slug> -- --template react-ts`, then copy the user's files in.
+- **Starting fresh**: I scaffold a fresh Vite + React + TypeScript + Tailwind project at the project root via `npm create vite@latest`.
 
 ### Step 3: I install dependencies and verify the baseline build
 
