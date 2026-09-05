@@ -2,6 +2,79 @@
 
 **Last verified: 2026-05-08.** Re-search `Resend MCP server <year>` before this stage if older than 60 days; an MCP didn't exist as of 2026-05 but may have shipped since.
 
+<!--
+====================================================================
+🚧 PENDING ADDITION — Reoon Email Verifier (deliverability gate)
+====================================================================
+
+When this skill is next updated for the AIO process, add Reoon Email
+Verifier as a default integration for the forms pipeline. Reference
+implementation already in production on Whisperliminals-website
+(commit eccc7ac, shipped 2026-05-21).
+
+WHAT TO ADD:
+  • Port `email-verifier.js` from Whisperliminals-website to the
+    skill's scaffolding output (it's vanilla Node fetch + ESM, ~180
+    lines, no dependencies).
+  • Wire `verifyQuick` into BOTH form endpoints (newsletter + contact)
+    as a blocking gate AFTER the syntax regex check and BEFORE the
+    four-layer pipeline (validate → DB capture → notify → ESP → CRM
+    → PostHog). Quick is the "validate" layer's deliverability sub-step.
+  • Wire `verifyPowerAsync` into the newsletter endpoint only (NOT
+    contact — contact volume is low and the message body itself is
+    the spam tell). Fire-and-forget after the 200 OK.
+  • Add `REOON_API_KEY` to the env-var manifest (.env.example, Railway
+    via API at Stage 4-equivalent time).
+  • Document the cost model — see "AppSumo LTD pricing" below.
+
+WHY IT MATTERS:
+  • The default Resend-only flow accepts any RFC-5322-syntactic email,
+    including disposable mailboxes (mailinator, guerrillamail, etc.),
+    role accounts (admin@), and addresses on domains with no MX.
+    Within a few weeks of launch this poisons the ESP list and
+    measurably drops deliverability scores (verified in prod traffic
+    on multiple Drew-owned properties).
+  • Quick mode adds ~250ms to form submission. Power mode runs async
+    so it adds zero user-facing latency.
+
+APPSUMO LTD PRICING (not a free SaaS):
+  Reoon's daily credits come from a one-time-purchase LTD on AppSumo:
+  https://appsumo.com/products/reoon-email-verifier/
+  5 stackable tiers — Tier 1 = 500/day, Tier 5 = 4,500/day.
+  Daily credits are CUMULATIVE per tier (Tier 2 = 1,200/day TOTAL, not
+  500 + 1,200). Current pricing + intermediate tiers on the product
+  page. Each newsletter signup = 2 credits (quick + power). Each
+  contact submit = 1 credit (quick only). User needs at least 1 code
+  purchased before this integration is useful in production.
+
+API CONTRACT (verified 2026-05-21):
+  • GET https://emailverifier.reoon.com/api/v1/verify
+  • Params: email, key, mode=quick|power
+  • Auth: query-param key (no header)
+  • Quick statuses: valid|invalid|disposable|spamtrap
+  • Power statuses: safe|invalid|disabled|disposable|inbox_full
+                    |catch_all|role_account|spamtrap|unknown
+  • Rate limit: ≤5 concurrent threads on single endpoint
+  • Quick latency ~250ms typical, 5s ceiling worth setting
+  • Power latency: seconds to >1min (Reoon's own docs are vague)
+
+FAIL-OPEN DISCIPLINE:
+  • Network errors / timeouts / non-200s on quick → return ok: true
+    (let the signup through). Transient Reoon issues must not block
+    real customers.
+  • Daily-credit exhaustion (429) → same: fail open, log a Slack
+    flag so the user can decide to buy another LTD code.
+  • REOON_API_KEY unset → skip entirely. Server boots, form works,
+    no deliverability gate (same posture as RESEND_API_KEY unset).
+
+WHERE THE REFERENCE LIVES:
+  See user memory file `reoon_email_verifier.md` for the full
+  integration playbook + the AppSumo tier ladder + the operational
+  monitoring posture.
+====================================================================
+-->
+
+
 > **🤖 Re-grounding (re-read at start of stage)**: I (Claude) wire up transactional email AND the full forms pipeline: I generate one `/api/<form-name>` endpoint per form discovered in Stage 0's `forms-manifest.md`, each with the four-layer model (validate → DB capture → notification email → ESP segment sync → CRM sync → PostHog event). The user's actions: (1) sign up at the email provider's dashboard once and paste the API key, (2) add DNS records (or grant Cloudflare API token), (3) review the per-form routing suggestions I generate and confirm the ESP segment / CRM stage mappings. Everything else I do autonomously, including LIVE researching the user's specific ESP and CRM at integration time so the generated code reflects each vendor's current API.
 
 ## Required-values check (run at stage start)
